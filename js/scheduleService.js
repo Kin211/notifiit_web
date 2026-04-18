@@ -1,6 +1,7 @@
 import { Lesson } from "./lesson.js";
+import { API_CONFIG } from './config.js';
 
-const BASE_URL = 'http://localhost:5084';
+const BASE_URL = API_CONFIG.BASE_URL;
 
 async function requestSchedule(url, timeoutMs = 10000) {
     const controller = new AbortController();

@@ -1,4 +1,5 @@
 import {fetchScheduleByDay, fetchScheduleByPeriod} from "./scheduleService.js";
+import { API_CONFIG } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const dayButtons = document.querySelectorAll('.day-btn');
@@ -90,7 +91,7 @@ async function displayWeekForDate(date) {
     try {
         // очищаем старые
         document.querySelectorAll('.event-card').forEach(card => card.remove());
-        const lessons = await fetchScheduleByPeriod(240801, 1, startDate, endDate);
+        const lessons = await fetchScheduleByPeriod(API_CONFIG.GROUP_ID, 1, startDate, endDate);
         renderLessons(lessons);
     } catch (error) {
         console.error("Не удалось загрузить расписание:", error);

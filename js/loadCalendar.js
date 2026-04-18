@@ -161,12 +161,15 @@ function renderLessons(lessons) {
 
             card.style.top = `${topOffset}px`;
             card.style.height = `${cardHeight}px`;
+            if (lesson.classroomNumber === "Онлайн") {
+                lesson.auditoryLocation = null;
+            }
 
             card.innerHTML = `
                 <span class="time">${lesson.getTimeRange()}</span>
-                <span class="title">${lesson.subjectName}</span>
-                <span class="location">Ауд. ${lesson.classroomNumber} ${lesson.auditoryLocation || ''}</span>
-                <span class="teacher">${lesson.teacherName}</span>
+                <span class="title">${lesson.subjectName || '-'}</span>
+                <span class="location">Ауд. ${lesson.classroomNumber || "-"} ${lesson.auditoryLocation || '-'}</span>
+                <span class="teacher">${lesson.teacherName || '-'}</span>
             `;
             targetCell.appendChild(card);
         }

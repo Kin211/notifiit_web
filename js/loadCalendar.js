@@ -1,5 +1,16 @@
-import {fetchScheduleByDay, fetchScheduleByPeriod} from "./scheduleService.js";
-import { API_CONFIG } from './config.js';
+import {fetchScheduleByPeriod} from "./scheduleService.js";
+import {API_CONFIG} from './config.js';
+import {getScheduleFromLocal, saveScheduleToLocal} from './storage.js';
+import {Lesson} from './lesson.js';
+
+let selectedLessonIndex = null;
+const HOUR_HEIGHT = 80;
+
+// английские дни в индексы (0-6)
+const dayToIndex = {
+    'Monday': 0, 'Tuesday': 1, 'Wednesday': 2,
+    'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const dayButtons = document.querySelectorAll('.day-btn');
@@ -86,12 +97,23 @@ async function displayWeekForDate(date) {
         }
     }
 
-    document.querySelector('.calendar-grid').dataset.currentMonday = monday.toISOString();
+    const grid = document.querySelector('.calendar-grid');
+    grid.dataset.currentMonday = monday.toISOString();
+    const mondayStr = monday.toISOString().split('T')[0];
 
     try {
         // очищаем старые
         document.querySelectorAll('.event-card').forEach(card => card.remove());
-        const lessons = await fetchScheduleByPeriod(API_CONFIG.GROUP_ID, 1, startDate, endDate);
+
+        let lessons = getScheduleFromLocal(mondayStr);
+
+        if (!lessons || lessons.length === 0) {
+            console.log("Загрузка с сервера...");
+            lessons = await fetchScheduleByPeriod(API_CONFIG.GROUP_ID, 1, weekDays[0], weekDays[6]);
+            saveScheduleToLocal(mondayStr, lessons);
+        } else {
+            console.log("Загрузка из локального хранилища");
+        }
         renderLessons(lessons);
     } catch (error) {
         console.error("Не удалось загрузить расписание:", error);
@@ -116,16 +138,6 @@ document.querySelector('.btn-today').addEventListener('click', () => {
     displayWeekForDate(new Date());
 });
 
-displayWeekForDate(new Date());
-
-const HOUR_HEIGHT = 80;
-
-// английские дни в индексы (0-6)
-const dayToIndex = {
-    'Monday': 0, 'Tuesday': 1, 'Wednesday': 2,
-    'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6
-};
-
 // "08:30" в 8.5
 function timeToDecimal(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -142,7 +154,8 @@ function getEventColor(subjectName) {
 function renderLessons(lessons) {
     document.querySelectorAll('.event-card').forEach(card => card.remove());
 
-    lessons.forEach(lesson => {
+    lessons.forEach((lessonData, index) => {
+        const lesson = new Lesson(lessonData);
         const dayIdx = dayToIndex[lesson.dayOfWeek];
         const startDecimal = timeToDecimal(lesson.startTime);
         const endDecimal = timeToDecimal(lesson.endTime);
@@ -158,13 +171,15 @@ function renderLessons(lessons) {
             const card = document.createElement('div');
             card.className = `event-card ${getEventColor(lesson.subjectName)}`;
             card.draggable = true;
+            card.dataset.index = index;
 
             card.style.top = `${topOffset}px`;
             card.style.height = `${cardHeight}px`;
+
+
             if (lesson.classroomNumber === "Онлайн") {
                 lesson.auditoryLocation = null;
             }
-
             card.innerHTML = `
                 <span class="time">${lesson.getTimeRange()}</span>
                 <span class="title">${lesson.subjectName || '-'}</span>
@@ -175,3 +190,5 @@ function renderLessons(lessons) {
         }
     });
 }
+
+displayWeekForDate(new Date());

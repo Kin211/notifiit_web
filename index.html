@@ -1,11 +1,210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>NotiFIIT</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotiFIIT_web</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mob_style.css">
+
 </head>
 <body>
+<div class="app-container">
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="logo-section">
+                <img class="logo" src="assets/logo.png" alt="logo">
+                <span class="brand-name">NotiFIITWeb</span>
+                <button class="btn-today">Сегодня</button>
+                <div class="date-nav">
+                    <button>&lt;</button>
+                    <span>Октябрь 23 - 29</span>
+                    <button>&gt;</button>
+                </div>
+            </div>
+            <div class="user-actions">
+                <span class="icon">🔔</span>
+                <span class="icon">👤</span>
+            </div>
+        </header>
 
+        <nav class="mobile-day-picker">
+            <div class="day-btn active" data-day="0">Пн<span>23</span></div>
+            <div class="day-btn" data-day="1">Вт<span>24</span></div>
+            <div class="day-btn" data-day="2">Ср<span>25</span></div>
+            <div class="day-btn" data-day="3">Чт<span>26</span></div>
+            <div class="day-btn" data-day="4">Пт<span>27</span></div>
+            <div class="day-btn" data-day="5">Сб<span>28</span></div>
+            <div class="day-btn" data-day="6">Вс<span>29</span></div>
+        </nav>
+
+        <section class="calendar-controls">
+            <h2>23 – 29 Октября 2026</h2>
+            <div class="action-buttons">
+                <button class="btn-add" id="addEventBtn">Добавить +</button>
+                <button class="btn-delete" id="deleteEventBtn">Удалить 🗑️</button>
+            </div>
+        </section>
+
+        <div class="calendar-grid" id="calendarGrid">
+            <div class="corner-placeholder"></div>
+            <div class="day-header"><span class="day-number">23</span> Пн</div>
+            <div class="day-header"><span class="day-number">24</span> Вт</div>
+            <div class="day-header"><span class="day-number">25</span> Ср</div>
+            <div class="day-header"><span class="day-number">26</span> Чт</div>
+            <div class="day-header"><span class="day-number">27</span> Пт</div>
+            <div class="day-header"><span class="day-number">28</span> Сб</div>
+            <div class="day-header"><span class="day-number">29</span> Вс</div>
+
+            <!-- 08:00 -->
+            <div class="time-label">08:00</div>
+            <div class="day-cell" data-day="0" data-hour="8">
+
+                <div class="event-card orange" draggable="true"
+                     style="height: 120px;">
+                    <!-- высоту нужно будет высчитывать относительно того, что 80px занимает час -->
+                    <span class="time">12:00 – 13:30</span>
+                    <span class="title">Дискретная математика</span>
+                    <span class="location">Ауд. 210</span>
+                    <span class="teacher">Кириллка Кинов</span>
+                </div>
+            </div>
+            <div class="day-cell" data-day="1" data-hour="8"></div>
+            <div class="day-cell" data-day="2" data-hour="8"></div>
+            <div class="day-cell" data-day="3" data-hour="8"></div>
+            <div class="day-cell" data-day="4" data-hour="8"></div>
+            <div class="day-cell" data-day="5" data-hour="8"></div>
+            <div class="day-cell" data-day="6" data-hour="8"></div>
+            <!-- 09:00 -->
+            <div class="time-label">09:00</div>
+            <div class="day-cell" data-day="0" data-hour="9"></div>
+            <div class="day-cell" data-day="1" data-hour="9"></div>
+            <div class="day-cell" data-day="2" data-hour="9"></div>
+            <div class="day-cell" data-day="3" data-hour="9"></div>
+            <div class="day-cell" data-day="4" data-hour="9"></div>
+            <div class="day-cell" data-day="5" data-hour="9"></div>
+            <div class="day-cell" data-day="6" data-hour="9"></div>
+            <!-- 10:00 -->
+            <div class="time-label">10:00</div>
+            <div class="day-cell" data-day="0" data-hour="10"></div>
+            <div class="day-cell" data-day="1" data-hour="10"></div>
+            <div class="day-cell" data-day="2" data-hour="10"></div>
+            <div class="day-cell" data-day="3" data-hour="10"></div>
+            <div class="day-cell" data-day="4" data-hour="10"></div>
+            <div class="day-cell" data-day="5" data-hour="10"></div>
+            <div class="day-cell" data-day="6" data-hour="10"></div>
+            <!-- 11:00 -->
+            <div class="time-label">11:00</div>
+            <div class="day-cell" data-day="0" data-hour="11"></div>
+            <div class="day-cell" data-day="1" data-hour="11"></div>
+            <div class="day-cell" data-day="2" data-hour="11"></div>
+            <div class="day-cell" data-day="3" data-hour="11"></div>
+            <div class="day-cell" data-day="4" data-hour="11"></div>
+            <div class="day-cell" data-day="5" data-hour="11"></div>
+            <div class="day-cell" data-day="6" data-hour="11"></div>
+            <!-- 12:00 -->
+            <div class="time-label">12:00</div>
+            <div class="day-cell" data-day="0" data-hour="12"></div>
+            <div class="day-cell" data-day="1" data-hour="12"></div>
+            <div class="day-cell" data-day="2" data-hour="12"></div>
+            <div class="day-cell" data-day="3" data-hour="12"></div>
+            <div class="day-cell" data-day="4" data-hour="12"></div>
+            <div class="day-cell" data-day="5" data-hour="12"></div>
+            <div class="day-cell" data-day="6" data-hour="12"></div>
+            <!-- 13:00 -->
+            <div class="time-label">13:00</div>
+            <div class="day-cell" data-day="0" data-hour="13"></div>
+            <div class="day-cell" data-day="1" data-hour="13"></div>
+            <div class="day-cell" data-day="2" data-hour="13"></div>
+            <div class="day-cell" data-day="3" data-hour="13"></div>
+            <div class="day-cell" data-day="4" data-hour="13"></div>
+            <div class="day-cell" data-day="5" data-hour="13"></div>
+            <div class="day-cell" data-day="6" data-hour="13"></div>
+            <!-- 14:00 -->
+            <div class="time-label">14:00</div>
+            <div class="day-cell" data-day="0" data-hour="14"></div>
+            <div class="day-cell" data-day="1" data-hour="14"></div>
+            <div class="day-cell" data-day="2" data-hour="14"></div>
+            <div class="day-cell" data-day="3" data-hour="14"></div>
+            <div class="day-cell" data-day="4" data-hour="14"></div>
+            <div class="day-cell" data-day="5" data-hour="14"></div>
+            <div class="day-cell" data-day="6" data-hour="14"></div>
+            <!-- 15:00 -->
+            <div class="time-label">15:00</div>
+            <div class="day-cell" data-day="0" data-hour="15"></div>
+            <div class="day-cell" data-day="1" data-hour="15"></div>
+            <div class="day-cell" data-day="2" data-hour="15"></div>
+            <div class="day-cell" data-day="3" data-hour="15"></div>
+            <div class="day-cell" data-day="4" data-hour="15"></div>
+            <div class="day-cell" data-day="5" data-hour="15"></div>
+            <div class="day-cell" data-day="6" data-hour="15"></div>
+            <!-- 16:00 -->
+            <div class="time-label">16:00</div>
+            <div class="day-cell" data-day="0" data-hour="16"></div>
+            <div class="day-cell" data-day="1" data-hour="16"></div>
+            <div class="day-cell" data-day="2" data-hour="16"></div>
+            <div class="day-cell" data-day="3" data-hour="16"></div>
+            <div class="day-cell" data-day="4" data-hour="16"></div>
+            <div class="day-cell" data-day="5" data-hour="16"></div>
+            <div class="day-cell" data-day="6" data-hour="16"></div>
+            <!-- 17:00 -->
+            <div class="time-label">17:00</div>
+            <div class="day-cell" data-day="0" data-hour="17"></div>
+            <div class="day-cell" data-day="1" data-hour="17"></div>
+            <div class="day-cell" data-day="2" data-hour="17"></div>
+            <div class="day-cell" data-day="3" data-hour="17"></div>
+            <div class="day-cell" data-day="4" data-hour="17"></div>
+            <div class="day-cell" data-day="5" data-hour="17"></div>
+            <div class="day-cell" data-day="6" data-hour="17"></div>
+            <!-- 18:00 -->
+            <div class="time-label">18:00</div>
+            <div class="day-cell" data-day="0" data-hour="18"></div>
+            <div class="day-cell" data-day="1" data-hour="18"></div>
+            <div class="day-cell" data-day="2" data-hour="18"></div>
+            <div class="day-cell" data-day="3" data-hour="18"></div>
+            <div class="day-cell" data-day="4" data-hour="18"></div>
+            <div class="day-cell" data-day="5" data-hour="18"></div>
+            <div class="day-cell" data-day="6" data-hour="18"></div>
+            <!-- 19:00 -->
+            <div class="time-label">19:00</div>
+            <div class="day-cell" data-day="0" data-hour="19"></div>
+            <div class="day-cell" data-day="1" data-hour="19"></div>
+            <div class="day-cell" data-day="2" data-hour="19"></div>
+            <div class="day-cell" data-day="3" data-hour="19"></div>
+            <div class="day-cell" data-day="4" data-hour="19"></div>
+            <div class="day-cell" data-day="5" data-hour="19"></div>
+            <div class="day-cell" data-day="6" data-hour="19"></div>
+            <!-- 20:00 -->
+            <div class="time-label">20:00</div>
+            <div class="day-cell" data-day="0" data-hour="20"></div>
+            <div class="day-cell" data-day="1" data-hour="20"></div>
+            <div class="day-cell" data-day="2" data-hour="20"></div>
+            <div class="day-cell" data-day="3" data-hour="20"></div>
+            <div class="day-cell" data-day="4" data-hour="20"></div>
+            <div class="day-cell" data-day="5" data-hour="20"></div>
+            <div class="day-cell" data-day="6" data-hour="20"></div>
+            <!-- 21:00 -->
+            <div class="time-label">21:00</div>
+            <div class="day-cell" data-day="0" data-hour="21"></div>
+            <div class="day-cell" data-day="1" data-hour="21"></div>
+            <div class="day-cell" data-day="2" data-hour="21"></div>
+            <div class="day-cell" data-day="3" data-hour="21"></div>
+            <div class="day-cell" data-day="4" data-hour="21"></div>
+            <div class="day-cell" data-day="5" data-hour="21"></div>
+            <div class="day-cell" data-day="6" data-hour="21"></div>
+            <!-- 22:00 -->
+            <div class="time-label">22:00</div>
+            <div class="day-cell" data-day="0" data-hour="22"></div>
+            <div class="day-cell" data-day="1" data-hour="22"></div>
+            <div class="day-cell" data-day="2" data-hour="22"></div>
+            <div class="day-cell" data-day="3" data-hour="22"></div>
+            <div class="day-cell" data-day="4" data-hour="22"></div>
+            <div class="day-cell" data-day="5" data-hour="22"></div>
+            <div class="day-cell" data-day="6" data-hour="22"></div>
+        </div>
+    </main>
+</div>
+
+<script type="module" src="js/loadCalendar.js"></script>
 </body>
 </html>

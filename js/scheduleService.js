@@ -1,10 +1,6 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
-
 import { Lesson } from "./lesson.js";
 
-const BASE_URL = process.env.NOTIFIIT_BASE_URL;
+const BASE_URL = 'http://localhost:5084';
 
 async function requestSchedule(url, timeoutMs = 10000) {
     const controller = new AbortController();

@@ -1,0 +1,110 @@
+.mobile-day-picker {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: var(--time-col-width) repeat(7, 1fr);
+        grid-auto-rows: 80px;
+
+        background-color: #fff;
+        border-left: 1px solid var(--border-color);
+        border-top: 1px solid var(--border-color);
+        overflow-y: auto;
+    }
+
+    .corner-placeholder, .day-header {
+        display: none;
+    }
+
+    .calendar-controls h2 {
+        font-size: 1.1rem;
+    }
+
+    .mobile-day-picker {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px;
+        background: #fff;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .day-btn {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #888;
+        padding: 5px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .day-btn span {
+        display: block;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .day-btn.active {
+        background: #2d3748;
+        color: #fff;
+    }
+
+    .day-btn.active span {
+        color: #fff;
+    }
+
+    .calendar-grid {
+        grid-template-columns: 60px 1fr;
+    }
+
+    .day-header {
+        display: none;
+    }
+
+    .day-cell {
+        display: none;
+    }
+
+    .calendar-grid {: 1 px solid var(--border-color);
+    }
+
+    .calendar-grid.show-day-0 .day-cell[data-day="0"],
+    .calendar-grid.show-day-1 .day-cell[data-day="1"],
+    .calendar-grid.show-day-2 .day-cell[data-day="2"],
+    .calendar-grid.show-day-3 .day-cell[data-day="3"],
+    .calendar-grid.show-day-4 .day-cell[data-day="4"],
+    .calendar-grid.show-day-5 .day-cell[data-day="5"],
+    .calendar-grid.show-day-6 .day-cell[data-day="6"] {
+        display: block;
+    }
+
+    .event-card {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 2px 2px;
+        display: flex;
+        flex-direction: column;
+        padding-left: 15px;
+        width: 98%;
+    }
+
+    .event-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        background: inherit; /* берет цвет из класса .blue / .orange */
+        filter: brightness(0.8);
+    }
+
+    .top-bar .btn-today, .top-bar .date-nav span {
+        display: none;
+    }
+}

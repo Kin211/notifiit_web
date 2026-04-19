@@ -2,11 +2,12 @@ import {fetchScheduleByPeriod} from "./scheduleService.js";
 import {API_CONFIG} from './config.js';
 import {getScheduleFromLocal, saveScheduleToLocal} from './storage.js';
 import {Lesson} from './lesson.js';
+import { ModalManager } from './modalManager.js';
 
+const modalManager = new ModalManager();
 let selectedLessonIndex = null;
 const HOUR_HEIGHT = 80;
 
-// английские дни в индексы (0-6)
 const dayToIndex = {
     'Monday': 0, 'Tuesday': 1, 'Wednesday': 2,
     'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6
@@ -102,21 +103,33 @@ async function displayWeekForDate(date) {
     const mondayStr = monday.toISOString().split('T')[0];
 
     try {
-        // очищаем старые
         document.querySelectorAll('.event-card').forEach(card => card.remove());
+        
+        // скелет расписания(пустые ячейки), пока данные подгружаются
+        const skeletonHTML = '<div class="skeleton-card" style="top: 0; height: 80px;"></div>';
+        document.querySelector('.day-cell[data-day="0"][data-hour="8"]')?.insertAdjacentHTML('beforeend', skeletonHTML);
+        document.querySelector('.day-cell[data-day="1"][data-hour="10"]')?.insertAdjacentHTML('beforeend', skeletonHTML);
+        document.querySelector('.day-cell[data-day="2"][data-hour="12"]')?.insertAdjacentHTML('beforeend', skeletonHTML);
 
         let lessons = getScheduleFromLocal(mondayStr);
 
         if (!lessons || lessons.length === 0) {
             console.log("Загрузка с сервера...");
+            // удалить потом строчку ниже
+            await new Promise(resolve => setTimeout(resolve, 500)); 
+            
             lessons = await fetchScheduleByPeriod(API_CONFIG.GROUP_ID, 1, weekDays[0], weekDays[6]);
             saveScheduleToLocal(mondayStr, lessons);
         } else {
             console.log("Загрузка из локального хранилища");
         }
+
+        document.querySelectorAll('.skeleton-card').forEach(card => card.remove());
+
         renderLessons(lessons);
     } catch (error) {
         console.error("Не удалось загрузить расписание:", error);
+        document.querySelectorAll('.skeleton-card').forEach(card => card.remove());
     }
 }
 
@@ -138,7 +151,6 @@ document.querySelector('.btn-today').addEventListener('click', () => {
     displayWeekForDate(new Date());
 });
 
-// "08:30" в 8.5
 function timeToDecimal(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours + (minutes / 60);
@@ -176,7 +188,7 @@ function renderLessons(lessons) {
             card.style.top = `${topOffset}px`;
             card.style.height = `${cardHeight}px`;
 
-
+            let locationText = lesson.classroomNumber || "-";
             if (lesson.classroomNumber === "Онлайн") {
                 lesson.auditoryLocation = null;
             }
@@ -186,6 +198,11 @@ function renderLessons(lessons) {
                 <span class="location">Ауд. ${lesson.classroomNumber || "-"} ${lesson.auditoryLocation || '-'}</span>
                 <span class="teacher">${lesson.teacherName || '-'}</span>
             `;
+
+            card.addEventListener('click', () => {
+                modalManager.open(lesson);
+            });
+
             targetCell.appendChild(card);
         }
     });

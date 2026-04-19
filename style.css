@@ -247,3 +247,56 @@ body {
     display: block;
     font-size: 0.7rem;
 }
+
+.skeleton-card {
+    background: linear-gradient(90deg, #f0f2f5 25%, #e2e8f0 50%, #f0f2f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 8px;
+    height: 80px;
+    position: absolute;
+    left: 4px; right: 4px;
+    opacity: 0.7;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.event-card {
+    animation: cardAppear 0.4s ease-out forwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+@keyframes cardAppear {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.event-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+button {
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.btn-today:hover, .nav-btn:hover {
+    background-color: #f1f3f5;
+    color: #000;
+}
+
+.day-btn {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.day-btn:active {
+    transform: scale(0.9);
+}

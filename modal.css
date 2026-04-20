@@ -48,15 +48,6 @@ dialog#lesson-modal::backdrop {
     line-height: 1.3;
 }
 
-.lesson-badge {
-    display: inline-block;
-    padding: 4px 14px;
-    border-radius: 12px;
-    background: #e3f2fd;
-    color: #1565c0;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
 
 .modal-body {
     display: flex;

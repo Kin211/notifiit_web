@@ -115,9 +115,6 @@ async function displayWeekForDate(date) {
 
         if (!lessons || lessons.length === 0) {
             console.log("Загрузка с сервера...");
-            // удалить потом строчку ниже
-            await new Promise(resolve => setTimeout(resolve, 500)); 
-            
             lessons = await fetchScheduleByPeriod(API_CONFIG.GROUP_ID, 1, weekDays[0], weekDays[6]);
             saveScheduleToLocal(mondayStr, lessons);
         } else {

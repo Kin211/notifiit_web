@@ -1,12 +1,6 @@
 export class ModalManager {
     constructor() {
         this.dialog = document.getElementById('lesson-modal');
-        
-        if (!this.dialog) {
-            console.error('Критическая ошибка: Элемент #lesson-modal не найден!');
-            return;
-        }
-
         this.content = this.dialog.querySelector('.modal-content');
         this.initTemplate();
         this.initListeners();
@@ -18,7 +12,6 @@ export class ModalManager {
             
             <div class="modal-header">
                 <h3 class="modal-title"></h3>
-                <span class="lesson-badge"></span>
             </div>
             
             <div class="modal-body">
@@ -42,7 +35,6 @@ export class ModalManager {
         `;
 
         this.titleNode = this.content.querySelector('.modal-title');
-        this.badgeNode = this.content.querySelector('.lesson-badge');
         
         this.timeLabelNode = this.content.querySelector('#time-label');
         this.timeNode = this.content.querySelector('.lesson-time');
@@ -65,7 +57,6 @@ export class ModalManager {
 
     open(lesson) {
         this.titleNode.textContent = lesson.subjectName || 'Без названия';
-        this.badgeNode.textContent = lesson.loadType || lesson.type || 'Занятие';
         
         if (lesson.pairNumber) {
             this.timeLabelNode.textContent = `🕒 ${lesson.pairNumber} пара:`;

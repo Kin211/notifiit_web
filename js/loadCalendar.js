@@ -2,6 +2,7 @@ import {fetchScheduleByPeriod} from "./scheduleService.js";
 import {API_CONFIG} from './config.js';
 import {addLesson, deleteLesson, getScheduleFromLocal, saveScheduleToLocal, updateLocalLesson} from './storage.js';
 import {Lesson} from './lesson.js';
+import {ModalManager} from './modalManager.js';
 
 const SLOT_MINUTES = 10;
 const SLOT_HEIGHT = 14;
@@ -27,9 +28,11 @@ let currentGroupId = loadGroupId();
 let selectedLessonId = null;
 let draggedLessonId = null;
 let draggedLessonOffsetY = 0;
+let modalManager = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     buildCalendarGrid();
+    modalManager = new ModalManager();
     setupMobileDayPicker();
     setupNavigation();
     setupCellsDnD();
@@ -57,19 +60,19 @@ function setupMobileDayPicker() {
 }
 
 function setupNavigation() {
-    document.querySelector('.date-nav button:first-child').addEventListener('click', () => {
+    document.getElementById('prevWeekBtn').addEventListener('click', () => {
         const prevWeek = new Date(currentMondayDate || new Date());
         prevWeek.setDate(prevWeek.getDate() - 7);
         displayWeekForDate(prevWeek);
     });
 
-    document.querySelector('.date-nav button:last-child').addEventListener('click', () => {
+    document.getElementById('nextWeekBtn').addEventListener('click', () => {
         const nextWeek = new Date(currentMondayDate || new Date());
         nextWeek.setDate(nextWeek.getDate() + 7);
         displayWeekForDate(nextWeek);
     });
 
-    document.querySelector('.btn-today').addEventListener('click', () => {
+    document.getElementById('todayBtn').addEventListener('click', () => {
         displayWeekForDate(new Date());
     });
 
@@ -238,10 +241,12 @@ async function displayWeekForDate(date, options = {}) {
 
     try {
         const storageKey = getWeekStorageKey();
-        const localLessons = forceRefresh ? null : getScheduleFromLocal(storageKey);
+        const cachedLessons = forceRefresh ? null : getScheduleFromLocal(storageKey);
+        const localLessons = hasUsableLocalLessons(cachedLessons) ? cachedLessons : null;
         let lessons = localLessons;
 
         if (localLessons === null) {
+            renderLoadingSkeletons();
             lessons = await fetchScheduleByPeriod(currentGroupId, 1, weekDays[0], weekDays[6]);
             lessons = saveScheduleToLocal(storageKey, lessons);
         }
@@ -259,6 +264,8 @@ async function displayWeekForDate(date, options = {}) {
         renderLessons(currentLessons);
         syncDeleteButtonState();
         alert(`Не удалось загрузить расписание для учебной группы ${currentGroupId}.`);
+    } finally {
+        removeLoadingSkeletons();
     }
 }
 
@@ -312,6 +319,7 @@ function persistAndRenderCurrentLessons() {
 }
 
 function renderLessons(lessons) {
+    removeLoadingSkeletons();
     document.querySelectorAll('.event-card').forEach(card => card.remove());
 
     sortLessons(lessons).forEach(lessonData => {
@@ -319,16 +327,23 @@ function renderLessons(lessons) {
         const dayIdx = dayToIndex[lesson.dayOfWeek];
         const startDecimal = timeToDecimal(lesson.startTime);
         const endDecimal = timeToDecimal(lesson.endTime);
-        const startSlotIndex = getSlotIndex(startDecimal);
+        const clippedStartDecimal = Math.max(startDecimal, START_HOUR);
+        const clippedEndDecimal = Math.min(endDecimal, END_HOUR);
+
+        if (!Number.isFinite(startDecimal) || !Number.isFinite(endDecimal) || clippedEndDecimal <= clippedStartDecimal) {
+            return;
+        }
+
+        const startSlotIndex = getSlotIndex(clippedStartDecimal);
         const targetCell = document.querySelector(`.day-cell[data-day="${dayIdx}"][data-slot="${startSlotIndex}"]`);
 
         if (!targetCell) {
             return;
         }
 
-        const duration = endDecimal - startDecimal;
+        const duration = clippedEndDecimal - clippedStartDecimal;
         const slotStartDecimal = getSlotStartDecimal(startSlotIndex);
-        const topOffset = ((startDecimal - slotStartDecimal) * 60 / SLOT_MINUTES) * SLOT_HEIGHT;
+        const topOffset = ((clippedStartDecimal - slotStartDecimal) * 60 / SLOT_MINUTES) * SLOT_HEIGHT;
         const cardHeight = (duration * 60 / SLOT_MINUTES) * SLOT_HEIGHT;
 
         const card = document.createElement('div');
@@ -355,8 +370,12 @@ function renderLessons(lessons) {
 
         card.addEventListener('click', event => {
             event.stopPropagation();
+            const isRepeatClick = selectedLessonId === lesson.localId;
             selectedLessonId = lesson.localId;
             renderLessons(currentLessons);
+            if (isRepeatClick && modalManager) {
+                modalManager.open(lesson);
+            }
         });
 
         card.addEventListener('pointerdown', event => {
@@ -508,6 +527,36 @@ function getEventColor(subjectName) {
     if (name.includes('мат') || name.includes('маш')) return 'blue';
     if (name.includes('физ') || name.includes('ист') || name.includes('пуб')) return 'orange';
     return 'green';
+}
+
+function hasUsableLocalLessons(lessons) {
+    return Array.isArray(lessons) && lessons.length > 0;
+}
+
+function renderLoadingSkeletons() {
+    removeLoadingSkeletons();
+
+    const skeletonSlots = [
+        {day: 0, slot: 6},
+        {day: 1, slot: 18},
+        {day: 2, slot: 30}
+    ];
+
+    skeletonSlots.forEach(({day, slot}) => {
+        const cell = document.querySelector(`.day-cell[data-day="${day}"][data-slot="${slot}"]`);
+        if (!cell) {
+            return;
+        }
+
+        const skeleton = document.createElement('div');
+        skeleton.className = 'skeleton-card';
+        skeleton.style.height = `${SLOT_HEIGHT * 9}px`;
+        cell.appendChild(skeleton);
+    });
+}
+
+function removeLoadingSkeletons() {
+    document.querySelectorAll('.skeleton-card').forEach(card => card.remove());
 }
 
 function sortLessons(lessons) {

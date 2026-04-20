@@ -8,33 +8,33 @@ export class ModalManager {
 
     initTemplate() {
         this.content.innerHTML = `
-            <button class="btn-close-icon" aria-label="Закрыть">&times;</button>
+            <button class="lesson-dialog-close" aria-label="Закрыть">&times;</button>
             
-            <div class="modal-header">
-                <h3 class="modal-title"></h3>
+            <div class="lesson-dialog-header">
+                <h3 class="lesson-dialog-title"></h3>
             </div>
             
-            <div class="modal-body">
-                <div class="info-row">
-                    <span class="label" id="time-label">🕒 Время:</span>
-                    <span class="value lesson-time"></span>
+            <div class="lesson-dialog-body">
+                <div class="lesson-dialog-row">
+                    <span class="lesson-dialog-label" id="time-label">🕒 Время:</span>
+                    <span class="lesson-dialog-value lesson-time"></span>
                 </div>
-                <div class="info-row">
-                    <span class="label">👤 Преподаватель:</span>
-                    <span class="value lesson-teacher"></span>
+                <div class="lesson-dialog-row">
+                    <span class="lesson-dialog-label">👤 Преподаватель:</span>
+                    <span class="lesson-dialog-value lesson-teacher"></span>
                 </div>
-                <div class="info-row">
-                    <span class="label">🚪 Кабинет:</span>
-                    <span class="value lesson-room"></span>
+                <div class="lesson-dialog-row">
+                    <span class="lesson-dialog-label">🚪 Кабинет:</span>
+                    <span class="lesson-dialog-value lesson-room"></span>
                 </div>
-                <div class="info-row" id="building-row">
-                    <span class="label">🏢 Корпус:</span>
-                    <span class="value lesson-building"></span>
+                <div class="lesson-dialog-row" id="building-row">
+                    <span class="lesson-dialog-label">🏢 Корпус:</span>
+                    <span class="lesson-dialog-value lesson-building"></span>
                 </div>
             </div>
         `;
 
-        this.titleNode = this.content.querySelector('.modal-title');
+        this.titleNode = this.content.querySelector('.lesson-dialog-title');
         
         this.timeLabelNode = this.content.querySelector('#time-label');
         this.timeNode = this.content.querySelector('.lesson-time');
@@ -50,7 +50,7 @@ export class ModalManager {
             if (e.target === this.dialog) this.close();
         });
 
-        this.content.querySelector('.btn-close-icon').addEventListener('click', () => {
+        this.content.querySelector('.lesson-dialog-close').addEventListener('click', () => {
             this.close();
         });
     }

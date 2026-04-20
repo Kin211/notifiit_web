@@ -24,7 +24,7 @@
             </div>
             <div class="user-actions">
                 <span class="icon">🔔</span>
-                <span class="icon">👤</span>
+                <button class="icon-button" id="profileBtn" type="button" aria-label="Изменить учебную группу">👤</button>
             </div>
         </header>
 
@@ -203,6 +203,50 @@
             <div class="day-cell" data-day="6" data-hour="22"></div>
         </div>
     </main>
+</div>
+
+<div class="modal hidden" id="lessonModal">
+    <div class="modal-backdrop" data-close-modal="true"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Новое занятие</h3>
+            <button type="button" class="modal-close" data-close-modal="true">&times;</button>
+        </div>
+        <form id="lessonForm" class="lesson-form">
+            <label>
+                День
+                <select name="dayIndex" id="lessonDay" required></select>
+            </label>
+            <label>
+                Начало
+                <input type="time" name="startTime" required>
+            </label>
+            <label>
+                Конец
+                <input type="time" name="endTime" required>
+            </label>
+            <label>
+                Предмет
+                <input type="text" name="subjectName" placeholder="Название занятия" required>
+            </label>
+            <label>
+                Преподаватель
+                <input type="text" name="teacherName" placeholder="Фамилия И.О.">
+            </label>
+            <label>
+                Аудитория
+                <input type="text" name="classroomNumber" placeholder="Например, 625 или Онлайн">
+            </label>
+            <label>
+                Корпус / адрес
+                <input type="text" name="auditoryLocation" placeholder="Например, Тургенева, 4">
+            </label>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" data-close-modal="true">Отмена</button>
+                <button type="submit" class="btn-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <dialog id="lesson-modal" class="modal-overlay">

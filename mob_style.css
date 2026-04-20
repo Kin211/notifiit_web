@@ -7,7 +7,7 @@
     .calendar-grid {
         display: grid;
         grid-template-columns: var(--time-col-width) repeat(7, 1fr);
-        grid-auto-rows: 80px;
+        grid-auto-rows: var(--slot-height);
 
         background-color: #fff;
         border-left: 1px solid var(--border-color);
@@ -68,9 +68,6 @@
         display: none;
     }
 
-    .calendar-grid {: 1 px solid var(--border-color);
-    }
-
     .calendar-grid.show-day-0 .day-cell[data-day="0"],
     .calendar-grid.show-day-1 .day-cell[data-day="1"],
     .calendar-grid.show-day-2 .day-cell[data-day="2"],
@@ -82,15 +79,10 @@
     }
 
     .event-card {
-        position: relative;
-        top: 0;
-        left: 0;
-        right: 0;
         margin: 2px 2px;
         display: flex;
         flex-direction: column;
         padding-left: 15px;
-        width: 98%;
     }
 
     .event-card::before {

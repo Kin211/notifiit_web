@@ -1,5 +1,6 @@
 export class Lesson {
     constructor(data) {
+        this.localId = data.localId || data.id || null;
         this.date = data.date;
         this.dayOfWeek = data.dayOfWeek;
         this.pairNumber = data.pairNumber;

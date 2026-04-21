@@ -185,15 +185,13 @@ body {
 
 .time-label {
     grid-column: 1;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: #888;
     text-align: center;
     border-right: 1px solid var(--border-color);
-    background: #fcfcfc;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 2px;
 }
 
 .day-cell {

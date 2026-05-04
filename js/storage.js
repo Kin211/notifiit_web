@@ -1,4 +1,5 @@
 const STORAGE_KEY_PREFIX = 'week_';
+const BUFFER_KEY_PREFIX = 'buffer_group_';
 
 function generateLessonId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -41,7 +42,7 @@ function updateLocalLesson(mondayStr, lessonId, newData) {
             return null;
         }
 
-        lessons[lessonIndex] = normalizeLesson({ ...lessons[lessonIndex], ...newData });
+        lessons[lessonIndex] = normalizeLesson({...lessons[lessonIndex], ...newData});
         return saveScheduleToLocal(mondayStr, lessons);
     }
     return null;
@@ -62,4 +63,33 @@ function deleteLesson(mondayStr, lessonId) {
     return null;
 }
 
-export {saveScheduleToLocal, addLesson, deleteLesson, getScheduleFromLocal, updateLocalLesson};
+// Глобальный буфер (вне недель)
+function getGlobalBuffer(groupId) {
+    const key = BUFFER_KEY_PREFIX + groupId;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data).map(normalizeLesson) : [];
+}
+
+function saveGlobalBuffer(groupId, bufferLessons) {
+    const key = BUFFER_KEY_PREFIX + groupId;
+    const normalizedLessons = (bufferLessons || []).map(normalizeLesson);
+    localStorage.setItem(key, JSON.stringify(normalizedLessons));
+    return normalizedLessons;
+}
+
+function addLessonToBuffer(groupId, lessonData) {
+    const buffer = getGlobalBuffer(groupId);
+    buffer.push(normalizeLesson({...lessonData, inBuffer: true}));
+    return saveGlobalBuffer(groupId, buffer);
+}
+
+function removeLessonFromBuffer(groupId, lessonId) {
+    const buffer = getGlobalBuffer(groupId);
+    const filteredBuffer = buffer.filter(lesson => lesson.localId !== lessonId);
+    return saveGlobalBuffer(groupId, filteredBuffer);
+}
+
+export {
+    saveScheduleToLocal, addLesson, deleteLesson, getScheduleFromLocal, updateLocalLesson,
+    getGlobalBuffer, saveGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer
+};

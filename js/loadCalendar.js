@@ -1,6 +1,9 @@
 import {fetchScheduleByPeriod} from "./scheduleService.js";
 import {API_CONFIG} from './config.js';
-import {addLesson, deleteLesson, getScheduleFromLocal, saveScheduleToLocal, updateLocalLesson} from './storage.js';
+import {
+    addLesson, deleteLesson, getScheduleFromLocal, saveScheduleToLocal, updateLocalLesson,
+    getGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer
+} from './storage.js';
 import {Lesson} from './lesson.js';
 import {ModalManager} from './modalManager.js';
 
@@ -327,7 +330,9 @@ function renderLessons(lessons) {
     const emptyPlaceholder = bufferZone.querySelector('.empty-buffer-placeholder');
     let itemsInBuffer = 0;
 
-    sortLessons(lessons).forEach(lessonData => {
+    const bufferLessons = getGlobalBuffer(currentGroupId);
+    const allLessonsToRender = [...lessons, ...bufferLessons];
+    sortLessons(allLessonsToRender).forEach(lessonData => {
         const lesson = new Lesson(lessonData);
         const dayIdx = dayToIndex[lesson.dayOfWeek];
         const startDecimal = timeToDecimal(lesson.startTime);
@@ -412,12 +417,17 @@ function renderLessons(lessons) {
             card.classList.remove('is-dragging-hidden');
 
             document.querySelectorAll('.day-cell.drag-over').forEach(cell => cell.classList.remove('drag-over'));
+            const bufferZone = document.getElementById('bufferDropZone');
             if (bufferZone) bufferZone.classList.remove('drag-over');
 
             const bufferSection = document.querySelector('.mobile-buffer-section');
-            const hasItemsInBuffer = currentLessons.some(l => l.inBuffer === true);
-            if (bufferSection && !hasItemsInBuffer) {
-                bufferSection.classList.remove('is-active');
+            if (bufferSection) {
+                const bufferLessons = getGlobalBuffer(currentGroupId);
+                if (bufferLessons.length === 0) {
+                    bufferSection.classList.remove('is-active');
+                } else {
+                    bufferSection.classList.add('is-active');
+                }
             }
         });
 
@@ -475,24 +485,40 @@ function moveLessonToCell(lessonId, cell, event) {
 
     const dayIndex = Number(cell.dataset.day);
     const targetStartDecimal = getDropStartDecimal(cell, event);
-    const lesson = currentLessons.find(item => item.localId === lessonId);
+
+    let lesson = currentLessons.find(item => item.localId === lessonId);
+    let wasInBuffer = false;
 
     if (!lesson) {
-        return;
+        const buffer = getGlobalBuffer(currentGroupId);
+        lesson = buffer.find(item => item.localId === lessonId);
+        if (lesson) wasInBuffer = true;
     }
+
+    if (!lesson) return;
 
     const duration = timeToDecimal(lesson.endTime) - timeToDecimal(lesson.startTime);
     const newStartTime = decimalToTime(targetStartDecimal);
     const newEndTime = decimalToTime(targetStartDecimal + duration);
     const newDate = getDateForDayIndex(dayIndex);
 
-    currentLessons = updateLocalLesson(getWeekStorageKey(), lessonId, {
-        date: formatDateTime(newDate),
-        dayOfWeek: indexToEnglishDay[dayIndex],
-        startTime: newStartTime,
-        endTime: newEndTime,
-        inBuffer: false,
-    }) || currentLessons;
+    if (wasInBuffer) {
+        removeLessonFromBuffer(currentGroupId, lessonId);
+        lesson.date = formatDateTime(newDate);
+        lesson.dayOfWeek = indexToEnglishDay[dayIndex];
+        lesson.startTime = newStartTime;
+        lesson.endTime = newEndTime;
+        lesson.inBuffer = false;
+        currentLessons = addLesson(getWeekStorageKey(), lesson) || [];
+    } else {
+        currentLessons = updateLocalLesson(getWeekStorageKey(), lessonId, {
+            date: formatDateTime(newDate),
+            dayOfWeek: indexToEnglishDay[dayIndex],
+            startTime: newStartTime,
+            endTime: newEndTime,
+            inBuffer: false,
+        }) || currentLessons;
+    }
 
     currentLessons = recalculatePairNumbers(currentLessons);
     selectedLessonId = lessonId;
@@ -676,10 +702,12 @@ function setupBufferDnD() {
 function moveLessonToBuffer(lessonId) {
     if (!lessonId) return;
 
-    currentLessons = updateLocalLesson(getWeekStorageKey(), lessonId, {
-        inBuffer: true  //добавляем флаг внутри localStorage
-    }) || currentLessons;
-
-    selectedLessonId = lessonId;
-    persistAndRenderCurrentLessons();
+    const lessonIndex = currentLessons.findIndex(item => item.localId === lessonId);
+    if (lessonIndex !== -1) {
+        const lessonToMove = currentLessons[lessonIndex];
+        addLessonToBuffer(currentGroupId, lessonToMove);
+        currentLessons = deleteLesson(getWeekStorageKey(), lessonId) || [];
+        selectedLessonId = lessonId;
+        persistAndRenderCurrentLessons();
+    }
 }

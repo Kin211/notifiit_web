@@ -202,6 +202,15 @@
             <div class="day-cell" data-day="5" data-hour="22"></div>
             <div class="day-cell" data-day="6" data-hour="22"></div>
         </div>
+        <!-- БУФЕР ПАР (Отображается только на мобильных) -->
+        <section class="mobile-buffer-section" id="mobileBufferSection">
+            <div class="buffer-header">
+                БУФЕР ПАР <span>(Удержите для переноса на другой день)</span>
+            </div>
+            <div class="buffer-drop-zone" id="bufferDropZone">
+                <div class="empty-buffer-placeholder">Ячейка для занятия</div>
+            </div>
+        </section>
     </main>
 </div>
 
@@ -252,6 +261,7 @@
 <dialog id="lesson-modal" class="modal-overlay">
 <div class="modal-content"></div>
 </dialog>
+<script src="js/DNDpolyfill.js"></script>
 <script type="module" src="js/loadCalendar.js"></script>
 </body>
 </html>

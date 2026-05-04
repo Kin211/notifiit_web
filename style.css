@@ -226,6 +226,9 @@ body {
     left: 2px;
     right: 2px;
     z-index: 5;
+    /* Для нормальной работы перетаскивания на мобилке */
+    touch-action: none; /* Запрещает браузеру скроллить страницу при свайпе по карточке */
+    user-select: none;
 }
 
 .event-card:active {
@@ -252,6 +255,10 @@ body {
     outline: 2px solid #1d4ed8;
     box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
     z-index: 20;
+}
+
+.event-card.is-dragging-hidden {
+    opacity: 0.3 !important;
 }
 
 .event-card .time {
@@ -425,4 +432,63 @@ button:active {
 .btn-secondary {
     background: #e2e8f0;
     color: #334155;
+}
+
+/*Для буфера*/
+.mobile-buffer-section {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    border-top: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+}
+
+.buffer-header {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.buffer-header span {
+    font-weight: 400;
+    color: #888;
+    text-transform: none;
+    font-size: 0.7rem;
+}
+
+.buffer-drop-zone {
+    min-height: 80px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.buffer-drop-zone.drag-over {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.empty-buffer-placeholder {
+    color: #94a3b8;
+    text-align: center;
+    font-size: 0.8rem;
+    line-height: 60px;
+}
+
+
+.event-card.in-buffer {
+    position: relative !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: 60px;
+    width: 100%;
+    margin: 0;
+    z-index: 1;
 }

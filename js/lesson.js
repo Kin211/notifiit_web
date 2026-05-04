@@ -11,6 +11,7 @@ export class Lesson {
         this.classroomNumber = data.classroomNumber;
         this.auditoryLocation = data.auditoryLocation || null;
         this.evenness = data.evenness;
+        this.inBuffer = Boolean(data.inBuffer);
     }
 
     static engDayToRus = {

@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCellsDnD();
     setupLessonActions();
     displayWeekForDate(new Date());
+    setupBufferDnD();
 });
 
 function setupMobileDayPicker() {
@@ -322,6 +323,10 @@ function renderLessons(lessons) {
     removeLoadingSkeletons();
     document.querySelectorAll('.event-card').forEach(card => card.remove());
 
+    const bufferZone = document.getElementById('bufferDropZone');
+    const emptyPlaceholder = bufferZone.querySelector('.empty-buffer-placeholder');
+    let itemsInBuffer = 0;
+
     sortLessons(lessons).forEach(lessonData => {
         const lesson = new Lesson(lessonData);
         const dayIdx = dayToIndex[lesson.dayOfWeek];
@@ -386,9 +391,16 @@ function renderLessons(lessons) {
         card.addEventListener('dragstart', event => {
             draggedLessonId = lesson.localId;
             selectedLessonId = lesson.localId;
+
+            setTimeout(() => card.classList.add('is-dragging-hidden'), 0);
+
+            const bufferSection = document.querySelector('.mobile-buffer-section');
+            if (bufferSection) bufferSection.classList.add('is-active');
+
             if (!Number.isFinite(draggedLessonOffsetY)) {
                 const cardRect = card.getBoundingClientRect();
-                draggedLessonOffsetY = event.clientY - cardRect.top;
+                // у touch-событий clientY может отсутствовать напрямую в event, полифилл это исправляет
+                draggedLessonOffsetY = (event.clientY || event.touches?.[0].clientY) - cardRect.top;
             }
             syncDeleteButtonState();
         });
@@ -396,11 +408,56 @@ function renderLessons(lessons) {
         card.addEventListener('dragend', () => {
             draggedLessonId = null;
             draggedLessonOffsetY = 0;
+
+            card.classList.remove('is-dragging-hidden');
+
             document.querySelectorAll('.day-cell.drag-over').forEach(cell => cell.classList.remove('drag-over'));
+            if (bufferZone) bufferZone.classList.remove('drag-over');
+
+            const bufferSection = document.querySelector('.mobile-buffer-section');
+            const hasItemsInBuffer = currentLessons.some(l => l.inBuffer === true);
+            if (bufferSection && !hasItemsInBuffer) {
+                bufferSection.classList.remove('is-active');
+            }
         });
 
-        targetCell.appendChild(card);
+        // поделил обработку для буфера и основы
+        if (lesson.inBuffer) {
+            card.classList.add('in-buffer');
+            if (bufferZone) {
+                bufferZone.appendChild(card);
+                itemsInBuffer++;
+            }
+        } else {
+            const dayIdx = dayToIndex[lesson.dayOfWeek];
+            const startDecimal = timeToDecimal(lesson.startTime);
+            const endDecimal = timeToDecimal(lesson.endTime);
+            const clippedStartDecimal = Math.max(startDecimal, START_HOUR);
+            const clippedEndDecimal = Math.min(endDecimal, END_HOUR);
+
+            if (!Number.isFinite(startDecimal) || !Number.isFinite(endDecimal) || clippedEndDecimal <= clippedStartDecimal) {
+                return;
+            }
+
+            const startSlotIndex = getSlotIndex(clippedStartDecimal);
+            const targetCell = document.querySelector(`.day-cell[data-day="${dayIdx}"][data-slot="${startSlotIndex}"]`);
+
+            if (targetCell) {
+                const duration = clippedEndDecimal - clippedStartDecimal;
+                const slotStartDecimal = getSlotStartDecimal(startSlotIndex);
+                const topOffset = ((clippedStartDecimal - slotStartDecimal) * 60 / SLOT_MINUTES) * SLOT_HEIGHT;
+                const cardHeight = (duration * 60 / SLOT_MINUTES) * SLOT_HEIGHT;
+
+                card.style.top = `${topOffset}px`;
+                card.style.height = `${cardHeight}px`;
+                targetCell.appendChild(card);
+            }
+        }
     });
+
+    if (emptyPlaceholder) {
+        emptyPlaceholder.style.display = itemsInBuffer > 0 ? 'none' : 'block';
+    }
 
     document.querySelectorAll('.day-cell').forEach(cell => {
         cell.onclick = () => {
@@ -433,7 +490,8 @@ function moveLessonToCell(lessonId, cell, event) {
         date: formatDateTime(newDate),
         dayOfWeek: indexToEnglishDay[dayIndex],
         startTime: newStartTime,
-        endTime: newEndTime
+        endTime: newEndTime,
+        inBuffer: false,
     }) || currentLessons;
 
     currentLessons = recalculatePairNumbers(currentLessons);
@@ -593,4 +651,35 @@ function getSlotIndex(decimalTime) {
 
 function getSlotStartDecimal(slotIndex) {
     return START_HOUR + ((slotIndex * SLOT_MINUTES) / 60);
+}
+
+//Для буфера
+function setupBufferDnD() {
+    const bufferZone = document.getElementById('bufferDropZone');
+
+    bufferZone.addEventListener('dragover', event => {
+        event.preventDefault();
+        bufferZone.classList.add('drag-over');
+    });
+
+    bufferZone.addEventListener('dragleave', () => {
+        bufferZone.classList.remove('drag-over');
+    });
+
+    bufferZone.addEventListener('drop', event => {
+        event.preventDefault();
+        bufferZone.classList.remove('drag-over');
+        moveLessonToBuffer(draggedLessonId);
+    });
+}
+
+function moveLessonToBuffer(lessonId) {
+    if (!lessonId) return;
+
+    currentLessons = updateLocalLesson(getWeekStorageKey(), lessonId, {
+        inBuffer: true  //добавляем флаг внутри localStorage
+    }) || currentLessons;
+
+    selectedLessonId = lessonId;
+    persistAndRenderCurrentLessons();
 }

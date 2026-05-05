@@ -258,10 +258,36 @@
     </div>
 </div>
 
+<div id="groupModal" class="modal">
+	<div class="modal-content">
+		<div class="modal-header">
+			<span id="modalCloseBtn" class="close-button">&times;</span>
+			<h2>Выбор группы</h2>
+		</div>
+		<div class="modal-body">
+			<form id="groupForm">
+				<div class="form-group">
+					<label for="groupSelect">Группа:</label>
+					<select id="groupSelect" required>
+						<option value="240801">МЕН-240801</option>
+						<option value="240802">МЕН-240802</option>
+						<option value="240809">МЕН-240809</option>
+						<option value="240810">МЕН-240810</option>
+					</select>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button id="modalOkBtn" class="btn-ok">OK</button>
+		</div>
+	</div>
+</div>
+
 <dialog id="lesson-modal" class="modal-overlay">
 <div class="modal-content"></div>
 </dialog>
 <script src="js/DNDpolyfill.js"></script>
 <script type="module" src="js/loadCalendar.js"></script>
+<script type="module" src="js/groupModal.js"></script>
 </body>
 </html>

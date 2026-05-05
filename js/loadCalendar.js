@@ -1,8 +1,7 @@
 import {fetchScheduleByPeriod} from "./scheduleService.js";
-import {API_CONFIG} from './config.js';
 import {
     addLesson, deleteLesson, getScheduleFromLocal, saveScheduleToLocal, updateLocalLesson,
-    getGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer
+    getGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer, loadGroupId
 } from './storage.js';
 import {Lesson} from './lesson.js';
 import {ModalManager} from './modalManager.js';
@@ -80,24 +79,9 @@ function setupNavigation() {
         displayWeekForDate(new Date());
     });
 
-    document.getElementById('profileBtn').addEventListener('click', () => {
-        const inputValue = window.prompt('Введите учебную группу', String(currentGroupId));
-        if (inputValue === null) {
-            return;
-        }
-
-        const nextGroupId = Number(inputValue.trim());
-        if (!Number.isInteger(nextGroupId) || nextGroupId <= 0) {
-            alert('Учебная группа должна быть положительным целым числом.');
-            return;
-        }
-
-        if (nextGroupId === currentGroupId) {
-            return;
-        }
-
-        currentGroupId = nextGroupId;
-        saveGroupId(currentGroupId);
+    window.addEventListener('groupChanged', (event) => {
+        const { groupId } = event.detail;
+        currentGroupId = groupId;
         displayWeekForDate(currentMondayDate || new Date(), {forceRefresh: true});
     });
 }
@@ -544,19 +528,6 @@ function syncDeleteButtonState() {
 
 function getWeekStorageKey() {
     return `${currentGroupId}_${currentMondayStr}`;
-}
-
-function loadGroupId() {
-    const savedValue = localStorage.getItem('active_group_id');
-    const parsedValue = Number(savedValue);
-    if (Number.isInteger(parsedValue) && parsedValue > 0) {
-        return parsedValue;
-    }
-    return API_CONFIG.GROUP_ID;
-}
-
-function saveGroupId(groupId) {
-    localStorage.setItem('active_group_id', String(groupId));
 }
 
 function getMonday(date) {

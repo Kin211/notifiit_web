@@ -1,3 +1,5 @@
+import { API_CONFIG } from "./config.js";
+
 const STORAGE_KEY_PREFIX = 'week_';
 const BUFFER_KEY_PREFIX = 'buffer_group_';
 
@@ -89,7 +91,21 @@ function removeLessonFromBuffer(groupId, lessonId) {
     return saveGlobalBuffer(groupId, filteredBuffer);
 }
 
+function loadGroupId() {
+    const savedValue = localStorage.getItem('active_group_id');
+    const parsedValue = Number(savedValue);
+    if (Number.isInteger(parsedValue) && parsedValue > 0) {
+        return parsedValue;
+    }
+    return API_CONFIG.GROUP_ID;
+}
+
+function saveGroupId(groupId) {
+    localStorage.setItem('active_group_id', String(groupId));
+}
+
 export {
     saveScheduleToLocal, addLesson, deleteLesson, getScheduleFromLocal, updateLocalLesson,
-    getGlobalBuffer, saveGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer
+    getGlobalBuffer, saveGlobalBuffer, addLessonToBuffer, removeLessonFromBuffer,
+    loadGroupId, saveGroupId,
 };

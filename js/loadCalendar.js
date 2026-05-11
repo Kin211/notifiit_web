@@ -5,6 +5,7 @@ import {
 } from './storage.js';
 import {Lesson} from './lesson.js';
 import {ModalManager} from './modalManager.js';
+import {LessonFormManager} from './lessonFormManager.js';
 
 const SLOT_MINUTES = 10;
 const SLOT_HEIGHT = 14;
@@ -31,10 +32,16 @@ let selectedLessonId = null;
 let draggedLessonId = null;
 let draggedLessonOffsetY = 0;
 let modalManager = null;
+let formManager = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     buildCalendarGrid();
-    modalManager = new ModalManager();
+    
+    formManager = new LessonFormManager();
+    modalManager = new ModalManager((lesson) => {
+        formManager.openForEdit(lesson, dayToIndex);
+    });
+    
     setupMobileDayPicker();
     setupNavigation();
     setupCellsDnD();
@@ -46,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupMobileDayPicker() {
     const dayButtons = document.querySelectorAll('.day-btn');
     const grid = document.getElementById('calendarGrid');
+    
     grid.classList.add('show-day-0');
 
     dayButtons.forEach(btn => {
@@ -54,9 +62,11 @@ function setupMobileDayPicker() {
             btn.classList.add('active');
 
             const dayIndex = Number(btn.dataset.day);
+            
             for (let i = 0; i <= 6; i++) {
                 grid.classList.remove(`show-day-${i}`);
             }
+            
             grid.classList.add(`show-day-${dayIndex}`);
         });
     });
@@ -117,6 +127,7 @@ function buildCalendarGrid() {
         const slotStartDecimal = START_HOUR + ((slotIndex * SLOT_MINUTES) / 60);
         const timeLabel = slotIndex % (60 / SLOT_MINUTES) === 0 ? decimalToTime(slotStartDecimal) : '';
         const boundaryClass = (slotIndex + 1) % (60 / SLOT_MINUTES) === 0 ? 'hour-boundary' : '';
+        
         fragments.push(`<div class="time-label ${boundaryClass}">${timeLabel}</div>`);
 
         for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
@@ -140,7 +151,9 @@ function setupLessonActions() {
     const modal = document.getElementById('lessonModal');
     const form = document.getElementById('lessonForm');
 
-    addButton.addEventListener('click', openLessonModal);
+    addButton.addEventListener('click', () => {
+        formManager.openForCreate();
+    });
 
     deleteButton.addEventListener('click', () => {
         if (!selectedLessonId) {
@@ -149,11 +162,13 @@ function setupLessonActions() {
         }
 
         const selectedLesson = currentLessons.find(lesson => lesson.localId === selectedLessonId);
+        
         if (!selectedLesson) {
             return;
         }
 
         const shouldDelete = window.confirm(`Удалить занятие "${selectedLesson.subjectName || 'Без названия'}"?`);
+        
         if (!shouldDelete) {
             return;
         }
@@ -165,14 +180,14 @@ function setupLessonActions() {
 
     modal.addEventListener('click', event => {
         if (event.target.dataset.closeModal === 'true') {
-            closeLessonModal();
+            formManager.close();
         }
     });
 
     form.addEventListener('submit', event => {
         event.preventDefault();
 
-        const formData = new FormData(form);
+        const formData = formManager.getFormData();
         const dayIndex = Number(formData.get('dayIndex'));
         const startTime = formData.get('startTime');
         const endTime = formData.get('endTime');
@@ -196,10 +211,18 @@ function setupLessonActions() {
             evenness: 'Always'
         };
 
-        currentLessons = addLesson(getWeekStorageKey(), newLesson) || [];
+        const editId = formManager.getEditId();
+
+        if (editId) {
+            currentLessons = updateLocalLesson(getWeekStorageKey(), editId, newLesson) || currentLessons;
+        } else {
+            newLesson.pairNumber = 0;
+            currentLessons = addLesson(getWeekStorageKey(), newLesson) || [];
+        }
+
         currentLessons = recalculatePairNumbers(currentLessons);
         persistAndRenderCurrentLessons();
-        closeLessonModal();
+        formManager.close();
     });
 }
 
@@ -240,9 +263,11 @@ async function displayWeekForDate(date, options = {}) {
         }
 
         currentLessons = recalculatePairNumbers(lessons || []);
+        
         if (localLessons === null && currentLessons.length === 0) {
             alert(`Для учебной группы ${currentGroupId} расписание не найдено.`);
         }
+        
         persistAndRenderCurrentLessons();
     } catch (error) {
         console.error("Не удалось загрузить расписание:", error);
@@ -316,6 +341,7 @@ function renderLessons(lessons) {
 
     const bufferLessons = getGlobalBuffer(currentGroupId);
     const allLessonsToRender = [...lessons, ...bufferLessons];
+    
     sortLessons(allLessonsToRender).forEach(lessonData => {
         const lesson = new Lesson(lessonData);
         const dayIdx = dayToIndex[lesson.dayOfWeek];
@@ -367,6 +393,7 @@ function renderLessons(lessons) {
             const isRepeatClick = selectedLessonId === lesson.localId;
             selectedLessonId = lesson.localId;
             renderLessons(currentLessons);
+            
             if (isRepeatClick && modalManager) {
                 modalManager.open(lesson);
             }
@@ -384,13 +411,16 @@ function renderLessons(lessons) {
             setTimeout(() => card.classList.add('is-dragging-hidden'), 0);
 
             const bufferSection = document.querySelector('.mobile-buffer-section');
-            if (bufferSection) bufferSection.classList.add('is-active');
+            if (bufferSection) {
+                bufferSection.classList.add('is-active');
+            }
 
             if (!Number.isFinite(draggedLessonOffsetY)) {
                 const cardRect = card.getBoundingClientRect();
                 // у touch-событий clientY может отсутствовать напрямую в event, полифилл это исправляет
                 draggedLessonOffsetY = (event.clientY || event.touches?.[0].clientY) - cardRect.top;
             }
+            
             syncDeleteButtonState();
         });
 
@@ -401,8 +431,11 @@ function renderLessons(lessons) {
             card.classList.remove('is-dragging-hidden');
 
             document.querySelectorAll('.day-cell.drag-over').forEach(cell => cell.classList.remove('drag-over'));
+            
             const bufferZone = document.getElementById('bufferDropZone');
-            if (bufferZone) bufferZone.classList.remove('drag-over');
+            if (bufferZone) {
+                bufferZone.classList.remove('drag-over');
+            }
 
             const bufferSection = document.querySelector('.mobile-buffer-section');
             if (bufferSection) {
@@ -476,10 +509,14 @@ function moveLessonToCell(lessonId, cell, event) {
     if (!lesson) {
         const buffer = getGlobalBuffer(currentGroupId);
         lesson = buffer.find(item => item.localId === lessonId);
-        if (lesson) wasInBuffer = true;
+        if (lesson) {
+            wasInBuffer = true;
+        }
     }
 
-    if (!lesson) return;
+    if (!lesson) {
+        return;
+    }
 
     const duration = timeToDecimal(lesson.endTime) - timeToDecimal(lesson.startTime);
     const newStartTime = decimalToTime(targetStartDecimal);
@@ -507,18 +544,6 @@ function moveLessonToCell(lessonId, cell, event) {
     currentLessons = recalculatePairNumbers(currentLessons);
     selectedLessonId = lessonId;
     persistAndRenderCurrentLessons();
-}
-
-function openLessonModal() {
-    const modal = document.getElementById('lessonModal');
-    const form = document.getElementById('lessonForm');
-    form.reset();
-    document.getElementById('lessonDay').value = '0';
-    modal.classList.remove('hidden');
-}
-
-function closeLessonModal() {
-    document.getElementById('lessonModal').classList.add('hidden');
 }
 
 function syncDeleteButtonState() {
@@ -674,6 +699,7 @@ function moveLessonToBuffer(lessonId) {
     if (!lessonId) return;
 
     const lessonIndex = currentLessons.findIndex(item => item.localId === lessonId);
+    
     if (lessonIndex !== -1) {
         const lessonToMove = currentLessons[lessonIndex];
         addLessonToBuffer(currentGroupId, lessonToMove);

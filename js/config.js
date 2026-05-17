@@ -1,4 +1,4 @@
 export const API_CONFIG = {
-    BASE_URL: 'http://158.160.239.199:5000',
+    BASE_URL: window.location.origin,
     GROUP_ID: 240801
 };

@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="user-actions">
-                <span class="icon">🔔</span>
+                <span class="icon" id="bellIcon">🔔</span>
                 <button class="icon-button" id="profileBtn" type="button" aria-label="Изменить учебную группу">👤</button>
             </div>
         </header>
@@ -284,11 +284,27 @@
 	</div>
 </div>
 
+<div id="slotModal" class="modal slot-modal" style="display: none;">
+	<div class="modal-content slot-machine">
+		<span class="close-slot">&times;</span>
+		<h2>🎰 СЛОТ-МАШИНА 🎰</h2>
+		<div class="reels">
+			<div class="reel" id="reel1">🍒</div>
+			<div class="reel" id="reel2">🍒</div>
+			<div class="reel" id="reel3">🍒</div>
+		</div>
+		<button id="spinBtn" class="spin-button">КРУТИТЬ</button>
+		<p id="slotMessage" class="slot-message">Нажми на кнопку!</p>
+	</div>
+</div>
+<div id="toastContainer" class="toast-container"></div>
+
 <dialog id="lesson-modal" class="modal-overlay">
 <div class="modal-content"></div>
 </dialog>
 <script src="js/DNDpolyfill.js"></script>
 <script type="module" src="js/loadCalendar.js"></script>
 <script type="module" src="js/groupModal.js"></script>
+<script type="module" src="js/easterEgg.js"></script>
 </body>
 </html>

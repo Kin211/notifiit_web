@@ -1,8 +1,12 @@
+const REEL_UPDATE_INTERVAL_MS = 60;
+
 let clickCount = 0;
 const bell = document.getElementById('bellIcon');
 const toastContainer = document.getElementById('toastContainer');
 const slotMusic = document.getElementById('slotMusic');
-slotMusic.volume = 0.2;
+const wowSound = new Audio('assets/anime-wow.mp3');
+slotMusic.volume = 0.1;
+wowSound.volume = 0.5;
 
 
 const firstClickPhrases = [
@@ -72,14 +76,11 @@ const reel3 = document.getElementById('reel3');
 const spinBtn = document.getElementById('spinBtn');
 const slotMessage = document.getElementById('slotMessage');
 
-const symbols = ['🍒', '🍊', '🍺', '🐗', '7️⃣', '🤖', '⭐', '🎱'];
+const symbols = ['🍒', '🍺', '🐗', '7️⃣', '🤖', '⭐'];
 
 function openSlotMachine() {
     slotModal.style.display = 'flex';
     slotMessage.textContent = 'Нажми на кнопку!';
-    reel1.textContent = '🍒';
-    reel2.textContent = '🍒';
-    reel3.textContent = '🍒';
 
     slotMusic.currentTime = 0;
     slotMusic.play().catch(e => console.warn('Музыка не заиграла:', e));
@@ -97,19 +98,21 @@ window.onclick = (e) => {
     }
 };
 
-function spinReelWithAnimation(reelElement, duration = 800) {
+function spinReelWithAnimation(reelElement, duration = 800, delay = 0) {
     return new Promise((resolve) => {
-        reelElement.classList.add('spinning');
-        let interval = setInterval(() => {
-            reelElement.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        }, 60);
         setTimeout(() => {
-            clearInterval(interval);
-            const finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-            reelElement.textContent = finalSymbol;
-            reelElement.classList.remove('spinning');
-            resolve(finalSymbol);
-        }, duration);
+            reelElement.classList.add('spinning');
+            let interval = setInterval(() => {
+                reelElement.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            }, REEL_UPDATE_INTERVAL_MS);
+            setTimeout(() => {
+                clearInterval(interval);
+                const finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                reelElement.textContent = finalSymbol;
+                reelElement.classList.remove('spinning');
+                resolve(finalSymbol);
+            }, duration);
+        }, delay);
     });
 }
 
@@ -117,11 +120,21 @@ spinBtn.onclick = async () => {
     spinBtn.disabled = true;
     spinBtn.textContent = 'КРУТИТСЯ...';
     slotMessage.textContent = '🎲 🎲 🎲';
+
+    const delay1 = 0;
+    const delay2 = Math.random() * 20 + 10;
+    const delay3 = Math.random() * 25 + 25;
+
+    startTickSound();
+
     const results = await Promise.all([
-        spinReelWithAnimation(reel1),
-        spinReelWithAnimation(reel2),
-        spinReelWithAnimation(reel3)
+        spinReelWithAnimation(reel1, 800, delay1),
+        spinReelWithAnimation(reel2, 800, delay2),
+        spinReelWithAnimation(reel3, 800, delay3)
     ]);
+
+    stopTickSound();
+
     const [s1, s2, s3] = results;
     let message = '';
     if (s1 === s2 && s2 === s3) {
@@ -131,6 +144,11 @@ spinBtn.onclick = async () => {
             const phraseTemplate = winTriplePhrases[Math.floor(Math.random() * winTriplePhrases.length)];
             message = phraseTemplate.replace('{symbol}', s1);
         }
+
+        createStarsEffect();
+        applyGlowEffect();
+        wowSound.currentTime = 0;
+        await wowSound.play();
     } else if (s1 === s2 || s2 === s3 || s1 === s3) {
         message = twoSamePhrases[Math.floor(Math.random() * twoSamePhrases.length)];
     } else {
@@ -153,3 +171,74 @@ bell.addEventListener('click', () => {
         openSlotMachine();
     }
 });
+
+function createStarsEffect() {
+    const effectContainer = document.createElement('div');
+    effectContainer.className = 'stars-effect';
+    document.body.appendChild(effectContainer);
+
+    const modal = document.querySelector('.slot-modal');
+    if (!modal) {
+        effectContainer.remove();
+        return;
+    }
+    const modalRect = modal.getBoundingClientRect();
+    const centerX = modalRect.left + modalRect.width / 2;
+    const centerY = modalRect.top + modalRect.height / 2;
+
+
+    const starsCount = 50;
+    const symbols = ['⭐', '🌟', '✨'];
+
+    for (let i = 0; i < starsCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        star.style.left = `${centerX - 15}px`;
+        star.style.top = `${centerY - 15}px`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 250 + Math.random() * 150;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        star.style.setProperty('--dx', `${dx}px`);
+        star.style.setProperty('--dy', `${dy}px`);
+
+        star.style.animationDelay = `${Math.random() * 0.2}s`;
+        effectContainer.appendChild(star);
+    }
+
+    setTimeout(() => {
+        effectContainer.remove();
+    }, 2000);
+}
+
+function applyGlowEffect() {
+    const reels = [reel1, reel2, reel3];
+    for (const reel of reels) {
+        reel.classList.remove('reel-glow');
+        void reel.offsetWidth;
+        reel.classList.add('reel-glow');
+        setTimeout(() => {
+            reel.classList.remove('reel-glow');
+        }, 1500);
+    }
+}
+
+let tickInterval = null;
+
+function startTickSound() {
+    if (tickInterval) clearInterval(tickInterval);
+    tickInterval = setInterval(() => {
+        const tick = new Audio('assets/reel_click.mp3');
+        tick.volume = 0.7;
+        tick.play().catch(e => console.error('Sound error', e));
+    }, REEL_UPDATE_INTERVAL_MS);
+}
+
+function stopTickSound() {
+    if (tickInterval) {
+        clearInterval(tickInterval);
+        tickInterval = null;
+    }
+}

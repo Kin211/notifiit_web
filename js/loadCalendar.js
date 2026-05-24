@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLessonActions();
     displayWeekForDate(new Date());
     setupBufferDnD();
+    syncBufferVisibility();
 });
 
 function setupMobileDayPicker() {
@@ -176,6 +177,7 @@ function setupLessonActions() {
         currentLessons = recalculatePairNumbers(deleteLesson(getWeekStorageKey(), selectedLessonId) || []);
         selectedLessonId = null;
         persistAndRenderCurrentLessons();
+        syncDeleteButtonState();
     });
 
     modal.addEventListener('click', event => {
@@ -243,6 +245,8 @@ async function displayWeekForDate(date, options = {}) {
     currentMondayStr = toYMD(monday);
     selectedLessonId = null;
     draggedLessonId = null;
+
+    syncDeleteButtonState();
 
     updateCalendarHeader(weekDays, monthNames);
     updateDayOptions(weekDays);
@@ -393,6 +397,8 @@ function renderLessons(lessons) {
             const isRepeatClick = selectedLessonId === lesson.localId;
             selectedLessonId = lesson.localId;
             renderLessons(currentLessons);
+
+            syncDeleteButtonState();
             
             if (isRepeatClick && modalManager) {
                 modalManager.open(lesson);
@@ -481,6 +487,7 @@ function renderLessons(lessons) {
             }
         }
     });
+    syncBufferVisibility();
 
     if (emptyPlaceholder) {
         emptyPlaceholder.style.display = itemsInBuffer > 0 ? 'none' : 'block';
@@ -489,8 +496,8 @@ function renderLessons(lessons) {
     document.querySelectorAll('.day-cell').forEach(cell => {
         cell.onclick = () => {
             selectedLessonId = null;
-            syncDeleteButtonState();
             renderLessons(currentLessons);
+            syncDeleteButtonState();
         };
     });
 }
@@ -708,3 +715,25 @@ function moveLessonToBuffer(lessonId) {
         persistAndRenderCurrentLessons();
     }
 }
+
+//для фикса отображения буфера при перезагрузке
+function syncBufferVisibility() {
+    const bufferSection = document.querySelector('.mobile-buffer-section');
+    if (!bufferSection) return;
+
+    // Проверяем данные в глобальном хранилище
+    const bufferItems = getGlobalBuffer(currentGroupId);
+
+    // Условие показа: в буфере есть пары ИЛИ мы сейчас что-то перетаскиваем
+    const shouldShow = bufferItems.length > 0 || !!draggedLessonId;
+
+    if (shouldShow) {
+        bufferSection.classList.add('is-active');
+        document.body.classList.add('buffer-open');
+    } else {
+        bufferSection.classList.remove('is-active');
+        document.body.classList.remove('buffer-open');
+    }
+}
+
+

@@ -1,4 +1,4 @@
 export const API_CONFIG = {
-    BASE_URL: "http://localhost:5084",
+    BASE_URL: window.location.origin,
     GROUP_ID: 240801
 };

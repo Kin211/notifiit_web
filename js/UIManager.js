@@ -36,6 +36,37 @@ export class UIManager {
         const modal = document.getElementById('lessonModal');
         const form = document.getElementById('lessonForm');
 
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const confirmMessage = document.getElementById('confirmMessage');
+        let pendingDeleteLessonId = null;
+
+        const closeConfirmModal = () => {
+            if (confirmModal) confirmModal.classList.add('hidden');
+            pendingDeleteLessonId = null;
+        };
+
+        confirmModal.addEventListener('click', (event) => {
+            if (event.target.dataset.closeModal === 'true') {
+                closeConfirmModal();
+            }
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (pendingDeleteLessonId === null) {
+                return;
+            }
+
+            appState.lessons = recalculatePairNumbers(
+                deleteLesson(appState.weekStorageKey, pendingDeleteLessonId) || []
+            );
+            appState.selectedLessonId = null;
+            onScheduleChanged();
+            UIManager.syncDeleteButtonState();
+
+            closeConfirmModal();
+        });
+
         addButton.addEventListener('click', () => {
             formManager.openForCreate();
         });
@@ -49,14 +80,9 @@ export class UIManager {
             const selectedLesson = appState.lessons.find(lesson => lesson.localId === appState.selectedLessonId);
             if (!selectedLesson) return;
 
-            const shouldDelete = window.confirm(`Удалить занятие "${selectedLesson.subjectName || 'Без названия'}"?`);
-            if (!shouldDelete) return;
-
-            appState.lessons = recalculatePairNumbers(deleteLesson(appState.weekStorageKey, appState.selectedLessonId) || []);
-            appState.selectedLessonId = null;
-
-            onScheduleChanged();
-            this.syncDeleteButtonState();
+            pendingDeleteLessonId = appState.selectedLessonId;
+            confirmMessage.textContent = `Вы уверены, что хотите удалить занятие "${selectedLesson.subjectName}"?`;
+            confirmModal.classList.remove('hidden');
         });
 
         modal.addEventListener('click', event => {

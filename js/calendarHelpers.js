@@ -93,3 +93,12 @@ export function recalculatePairNumbers(lessons) {
         };
     });
 }
+
+export function getDropStartDecimal(cell, event, offsetY) {
+    const cellRect = cell.getBoundingClientRect();
+    const targetSlotIndex = Number(cell.dataset.slot);
+    const topEdgeY = event.clientY - offsetY;
+    const slotOffset = Math.round((topEdgeY - cellRect.top) / SLOT_HEIGHT);
+    const slotIndex = Math.min(Math.max(targetSlotIndex + slotOffset, 0), TOTAL_SLOTS - 1);
+    return getSlotStartDecimal(slotIndex);
+}
